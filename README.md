@@ -16,3 +16,6 @@ async with MinecraftClient('1.3.3.7', 25575, 'password') as mc:
 
 ## Необходимо
 **Python 3.5 или выше**
+
+## Мой сервер - t.me/trassert_server
+**Бот там использует этот модуль!**
