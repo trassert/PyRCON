@@ -1,11 +1,14 @@
 import asyncio
 import struct
 
+
 class ClientError(Exception):
     pass
 
+
 class InvalidPassword(Exception):
     pass
+
 
 class MinecraftClient:
 
@@ -20,7 +23,9 @@ class MinecraftClient:
 
     async def __aenter__(self):
         if not self._writer:
-            self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
+            self._reader, self._writer = await asyncio.open_connection(
+                self.host, self.port
+            )
             await self._authenticate()
 
         return self
@@ -28,6 +33,7 @@ class MinecraftClient:
     async def __aexit__(self, exc_type, exc, tb):
         if self._writer:
             self._writer.close()
+            await self._writer.wait_closed()  # ! Ждать закрытия
 
     async def _authenticate(self):
         if not self._auth:
@@ -37,17 +43,22 @@ class MinecraftClient:
     async def _read_data(self, leng):
         data = b''
         while len(data) < leng:
-            data += await self._reader.read(leng - len(data))
-
+            packet = await self._reader.read(leng - len(data))
+            if not packet:  # Проверка отклоняет дубляж пакета (мб)
+                break
+            data += packet
         return data
 
     async def _send(self, typen, message):
         if not self._writer:
-            raise ClientError('Not connected.')
+            raise ClientError('Не подключён.')
 
-        out = struct.pack('<li', 0, typen) + message.encode('utf8') + b'\x00\x00'
+        out = struct.pack(
+            '<li', 0, typen
+        ) + message.encode('utf8') + b'\x00\x00'
         out_len = struct.pack('<i', len(out))
         self._writer.write(out_len + out)
+        await self._writer.drain()  # Не даёт дублироваться ответу
 
         in_len = struct.unpack('<i', await self._read_data(4))
         in_payload = await self._read_data(in_len[0])
@@ -56,14 +67,15 @@ class MinecraftClient:
         in_data, in_padd = in_payload[8:-2], in_payload[-2:]
 
         if in_padd != b'\x00\x00':
-            raise ClientError('Incorrect padding.')
+            raise ClientError('Неправильное заполнение.')
         if in_id == -1:
-            raise InvalidPassword('Incorrect password.')
+            raise InvalidPassword('Неверный пароль.')
+        if in_type == typen:  # Проверка отклоняет дубляж пакета (мб)
+            raise ClientError('Получен пакет с неправильным типом.')
 
         data = in_data.decode('utf8')
         return data
 
     async def send(self, cmd):
         result = await self._send(2, cmd)
-        await asyncio.sleep(0.003) #unsure about this
         return result
