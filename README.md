@@ -1,5 +1,11 @@
 # PyRCON
 
+![Issues](https://img.shields.io/github/issues-raw/trassert/PyRCON?color=c78aff&label=issues&style=for-the-badge)
+![Contributors](https://img.shields.io/github/contributors/trassert/PyRCON?color=c78aff&label=contributors&style=for-the-badge)
+![Lines](https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/trassert/PyRCON/badge?style=flat&logoColor=white&color=c78aff&style=for-the-badge)
+![Commit Activity](https://img.shields.io/github/commit-activity/m/trassert/PyRCON?color=c78aff&label=commits&style=for-the-badge)
+![Last Commit](https://img.shields.io/github/last-commit/trassert/PyRCON?color=c78aff&label=last%20commit&style=for-the-badge)
+
 ## EN
 ## Description
 [RCON protocol](https://wiki.vg/RCON ) asynchronously in Python.
